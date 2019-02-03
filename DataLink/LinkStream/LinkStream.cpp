@@ -77,9 +77,7 @@ unsigned int LinkStream::streamSize()
 
 char* LinkStream::begin()
 {
-	if (streamReadPosition >= dataBuffer.size())
-		return end();
-	return &dataBuffer[streamReadPosition];
+	return &dataBuffer[0];
 }
 
 char* LinkStream::end()
@@ -110,6 +108,7 @@ LinkStream& operator<<(LinkStream& stream, const char* value)
 	stream.appendValue('\0');
 	return stream;
 }
+
 
 LinkStream& operator>>(LinkStream& stream, char& value)
 {

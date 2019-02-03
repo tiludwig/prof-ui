@@ -52,11 +52,9 @@ std::unique_ptr<CheckedLinkStream> HostPacket::serialize()
 	//CheckedLinkStream stream(payloadSize);
 	*stream << id;
 	*stream << payloadSize;
-	for (unsigned int i = 0; i < payloadSize; i++)
-	{
+	for(unsigned int i = 0; i < payloadSize; i++)
 		*stream << payload[i];
-	}
-	*stream << checksum;
+	*stream << stream->getChecksum();
 	return std::move(stream);
 }
 

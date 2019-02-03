@@ -4,7 +4,7 @@
 #include <linux/types.h>
 #include <vector>
 #include <type_traits>
-#include "Components/HostClient/HostPacket.hpp"
+#include "DataLink/HostPacket/HostPacket.hpp"
 #include "DataLink/LinkLayer/TcpLink.hpp"
 #include "DataLink/ProtocolLayer/DefaultProtocol.hpp"
 
@@ -53,30 +53,15 @@ int main(int argc, char const *argv[])
 {
 	try
 	{
-		auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
-		protocol->processData(100);
-		protocol->processData(0);
-		protocol->processData(0);
-		protocol->processData(0);
+		HostPacket packet(100);
+		const char* data = "Please work ...";
+		auto len = strlen(data) + 1;
+		packet.addPayload(data, len);
+		TcpLink link;
+		link.initialize();
+		link.open("127.0.0.1", 8080);
 
-		protocol->processData(6);
-		protocol->processData(0);
-		protocol->processData(0);
-		protocol->processData(0);
-		protocol->processData('H');
-		protocol->processData('e');
-		protocol->processData('l');
-		protocol->processData('l');
-		protocol->processData('o');
-		protocol->processData('\0');
-		protocol->processData(-94);
-		if(protocol->isPacketComplete())
-		{
-			auto packet = protocol->getPacket();
-			printf("received: id=%d, plsize=%d\n", packet->id, packet->payloadSize);
-			printf("payload:  %s\n", packet->payload);
-		}
-
+		link.sendPacket(packet);
 		return 0;
 	}
 	catch(const char* err)

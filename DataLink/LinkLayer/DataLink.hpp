@@ -9,7 +9,7 @@
 #define DATALINK_DATALINK_HPP_
 
 #include <stdint.h>
-#include "../../Components/HostClient/HostPacket.hpp"
+#include "../HostPacket/HostPacket.hpp"
 
 class DataLink
 {

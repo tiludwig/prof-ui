@@ -8,7 +8,7 @@
 #ifndef COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 #define COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 
-#include "../../DataLink/CheckedLinkStream.hpp"
+#include "../../DataLink/LinkStream/CheckedLinkStream.hpp"
 #include <memory>
 
 class HostPacket
@@ -22,7 +22,6 @@ public:
 	bool payloadCreated;
 private:
 	HostPacket();
-
 public:
 	HostPacket(const HostPacket&) = delete;
 	HostPacket(unsigned int id);

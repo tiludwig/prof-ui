@@ -8,7 +8,7 @@
 #ifndef DATALINK_PROTOCOLLAYER_LINKPROTOCOL_HPP_
 #define DATALINK_PROTOCOLLAYER_LINKPROTOCOL_HPP_
 
-#include "../../Components/HostClient/HostPacket.hpp"
+#include "../HostPacket/HostPacket.hpp"
 
 class LinkProtocol
 {
