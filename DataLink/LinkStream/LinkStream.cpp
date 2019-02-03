@@ -109,6 +109,15 @@ LinkStream& operator<<(LinkStream& stream, const char* value)
 	return stream;
 }
 
+LinkStream& operator<<(LinkStream& stream, LinkStream& value)
+{
+	for(auto& v : value)
+	{
+		stream << v;
+	}
+
+	return stream;
+}
 
 LinkStream& operator>>(LinkStream& stream, char& value)
 {

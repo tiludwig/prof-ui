@@ -44,6 +44,7 @@ public:
 	friend LinkStream& operator<<(LinkStream& stream, char value);
 	friend LinkStream& operator<<(LinkStream& stream, unsigned char value);
 	friend LinkStream& operator<<(LinkStream& stream, const char* value);
+	friend LinkStream& operator<<(LinkStream& stream, LinkStream& value);
 
 	template<class T>
 	friend LinkStream& operator>>(LinkStream& stream, T& value);
