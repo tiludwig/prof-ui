@@ -14,12 +14,11 @@
 class HostPacket
 {
 public:
+	LinkStream payloadStream;
+public:
 	unsigned int id;
-	unsigned int payloadSize;
 	char checksum;
 
-	const char* payload;
-	bool payloadCreated;
 private:
 	HostPacket();
 public:
@@ -27,7 +26,8 @@ public:
 	HostPacket(unsigned int id);
 	virtual ~HostPacket();
 
-	void addPayload(const char* payload, unsigned int size);
+	template <class T>
+	void addPayload(T value);
 
 	unsigned int getPacketSize();
 
@@ -44,6 +44,13 @@ public:
 //
 //	Template definition
 //
+
+template <class T>
+void HostPacket::addPayload(T value)
+{
+	payloadStream << value;
+}
+
 template<class T>
 T HostPacket::createType()
 {

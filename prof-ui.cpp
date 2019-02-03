@@ -54,14 +54,19 @@ int main(int argc, char const *argv[])
 	try
 	{
 		HostPacket packet(100);
-		const char* data = "Please work ...";
-		auto len = strlen(data) + 1;
-		packet.addPayload(data, len);
+		packet.addPayload("This is a neat little message");
+		packet.addPayload(static_cast<char>(100));
+		packet.addPayload(5);
+		auto result = packet.serialize();
+
+		HostPacket test(0);
+		test.deserialize(*result);
+
 		TcpLink link;
 		link.initialize();
 		link.open("127.0.0.1", 8080);
 
-		link.sendPacket(packet);
+		link.sendPacket(test);
 		return 0;
 	}
 	catch(const char* err)
