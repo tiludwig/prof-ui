@@ -53,10 +53,11 @@ int main(int argc, char const *argv[])
 {
 	try
 	{
+		const char* name = "Yoooo. Is this working???";
+		int length = strlen(name) + 1;
+
 		HostPacket packet(100);
-		packet.addPayload("This is a neat little message");
-		packet.addPayload(static_cast<char>(100));
-		packet.addPayload(5);
+		packet.payloadStream << 1234 << 5678 << length <<"Yoooo. Is this working???";
 		auto result = packet.serialize();
 
 		HostPacket test(0);
