@@ -53,11 +53,10 @@ int main(int argc, char const *argv[])
 {
 	try
 	{
-		const char* name = "Yoooo. Is this working???";
-		int length = strlen(name) + 1;
+		std::string name = "Yoooo. Is this working???";
 
 		HostPacket packet(100);
-		packet.payloadStream << 1234 << 5678 << length <<"Yoooo. Is this working???";
+		packet.payloadStream << 1234 << 5678 << name;
 		auto result = packet.serialize();
 
 		HostPacket test(0);

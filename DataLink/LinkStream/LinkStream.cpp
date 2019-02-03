@@ -42,11 +42,11 @@ void LinkStream::reset()
 void LinkStream::seekg(unsigned int position, unsigned int direction)
 {
 	auto currentPosition = streamReadPosition;
-	if(direction == pos_beg)
+	if (direction == pos_beg)
 	{
 		currentPosition = position;
 	}
-	else if(direction == pos_end)
+	else if (direction == pos_end)
 	{
 		currentPosition = dataBuffer.size() - position;
 	}
@@ -55,7 +55,7 @@ void LinkStream::seekg(unsigned int position, unsigned int direction)
 		currentPosition += position;
 	}
 
-	if(currentPosition > dataBuffer.size())
+	if (currentPosition > dataBuffer.size())
 		currentPosition = dataBuffer.size();
 
 	streamReadPosition = currentPosition;
@@ -111,11 +111,21 @@ LinkStream& operator<<(LinkStream& stream, const char* value)
 
 LinkStream& operator<<(LinkStream& stream, LinkStream& value)
 {
-	for(auto& v : value)
+	for (auto& v : value)
 	{
 		stream << v;
 	}
 
+	return stream;
+}
+
+LinkStream& operator<<(LinkStream& stream, std::string& value)
+{
+	stream << static_cast<unsigned int>(value.size()) + 1;
+	for (auto& character : value)
+		stream << character;
+
+	stream << '\0';
 	return stream;
 }
 
@@ -125,5 +135,28 @@ LinkStream& operator>>(LinkStream& stream, char& value)
 		throw "Failed to extract from CheckedStream. Not enough bytes available";
 
 	value = stream.dataBuffer[stream.streamReadPosition++];
+	return stream;
+}
+
+LinkStream& operator>>(LinkStream& stream, std::string& value)
+{
+	if (stream.bytesAvailable() < sizeof(unsigned int))
+		throw "Failed to extract from CheckedStream. Not enough bytes available";
+
+	unsigned int strLength;
+	stream >> strLength;
+
+	if (stream.bytesAvailable() < strLength)
+			throw "Failed to extract from CheckedStream. Not enough bytes available";
+
+
+	value.reserve(strLength - 1 + value.size());
+	char temp;
+	for(unsigned int i = 0; i < strLength; i++)
+	{
+		stream >> temp;
+		value += temp;
+	}
+
 	return stream;
 }
