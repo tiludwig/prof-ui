@@ -87,15 +87,17 @@ char* LinkStream::end()
 	return &dataBuffer[dataBuffer.size()];
 }
 
-LinkStream& operator<<(LinkStream& stream, char value)
+char* LinkStream::iterator()
 {
-	stream.appendValue(value);
-	return stream;
+	if (streamReadPosition > dataBuffer.size())
+		return end();
+	return &dataBuffer[streamReadPosition];
 }
 
-LinkStream& operator<<(LinkStream& stream, unsigned char value)
+LinkStream& operator<<(LinkStream& stream, bool value)
 {
-	stream.appendValue(value);
+	char temp = (value == true) ? 1 : 0;
+	stream.appendValue(temp);
 	return stream;
 }
 
@@ -109,23 +111,33 @@ LinkStream& operator<<(LinkStream& stream, const char* value)
 	return stream;
 }
 
+LinkStream& operator<<(LinkStream& stream, const std::string& value)
+{
+	for (auto& character : value)
+		stream.appendValue(character);
+	stream.appendValue('\0');
+	return stream;
+}
+
 LinkStream& operator<<(LinkStream& stream, LinkStream& value)
 {
 	for (auto& v : value)
 	{
-		stream << v;
+		stream.appendValue(v);
 	}
 
 	return stream;
 }
 
-LinkStream& operator<<(LinkStream& stream, std::string& value)
+LinkStream& operator>>(LinkStream& stream, bool& value)
 {
-	stream << static_cast<unsigned int>(value.size()) + 1;
-	for (auto& character : value)
-		stream << character;
+	if (stream.bytesAvailable() < sizeof(char))
+		throw "Failed to extract from CheckedStream. Not enough bytes available";
 
-	stream << '\0';
+	char temp;
+	stream >> temp;
+	value = (temp == 0) ? false : true;
+
 	return stream;
 }
 
@@ -140,23 +152,11 @@ LinkStream& operator>>(LinkStream& stream, char& value)
 
 LinkStream& operator>>(LinkStream& stream, std::string& value)
 {
-	if (stream.bytesAvailable() < sizeof(unsigned int))
+	if (stream.bytesAvailable() < sizeof(char))
 		throw "Failed to extract from CheckedStream. Not enough bytes available";
 
-	unsigned int strLength;
-	stream >> strLength;
-
-	if (stream.bytesAvailable() < strLength)
-			throw "Failed to extract from CheckedStream. Not enough bytes available";
-
-
-	value.reserve(strLength - 1 + value.size());
-	char temp;
-	for(unsigned int i = 0; i < strLength; i++)
-	{
-		stream >> temp;
-		value += temp;
-	}
+	value = stream.iterator();
+	stream.streamReadPosition += value.size() + 1;
 
 	return stream;
 }

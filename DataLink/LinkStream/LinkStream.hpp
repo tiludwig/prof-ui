@@ -35,27 +35,25 @@ public:
 
 	char* begin();
 	char* end();
+	char* iterator();
 
 	void seekg(unsigned int position, unsigned int direction);
 
 	// Stream operators
 	template<class T>
 	friend LinkStream& operator<<(LinkStream& stream, T value);
-
-	friend LinkStream& operator<<(LinkStream& stream, char value);
-	friend LinkStream& operator<<(LinkStream& stream, unsigned char value);
-	friend LinkStream& operator<<(LinkStream& stream, const char* value);
+	friend LinkStream& operator<<(LinkStream& stream, bool value);
 	friend LinkStream& operator<<(LinkStream& stream, LinkStream& value);
-	friend LinkStream& operator<<(LinkStream& stream, std::string& value);
+	friend LinkStream& operator<<(LinkStream& stream, const char* value);
+	friend LinkStream& operator<<(LinkStream& stream, const std::string& value);
 
 	template<class T>
 	friend LinkStream& operator>>(LinkStream& stream, T& value);
 
+	friend LinkStream& operator>>(LinkStream& stream, bool& value);
 	friend LinkStream& operator>>(LinkStream& stream, char& value);
-	friend LinkStream& operator>>(LinkStream& stream, const char* value);
 	friend LinkStream& operator>>(LinkStream& stream, std::string& value);
 };
-
 
 //
 //	Template stream operators
@@ -64,10 +62,17 @@ public:
 template<class T>
 LinkStream& operator<<(LinkStream& stream, T value)
 {
-	for (unsigned int i = 0; i < sizeof(T); i++)
+	if (sizeof(T) == sizeof(char))
 	{
-		stream.appendValue(value & 0xFF);
-		value = value >> 8;
+		stream.appendValue(value);
+	}
+	else
+	{
+		for (unsigned int i = 0; i < sizeof(T); i++)
+		{
+			stream.appendValue(value & 0xFF);
+			value = value >> 8;
+		}
 	}
 	return stream;
 }
@@ -82,7 +87,7 @@ LinkStream& operator>>(LinkStream& stream, T& value)
 	for (unsigned int i = 0; i < sizeof(value); i++)
 	{
 		unsigned char temp = static_cast<unsigned char>(stream.dataBuffer[stream.streamReadPosition++]);
-		value = value | (temp << 8 * i);
+		value = value | static_cast<T>(temp) << 8u * i;
 	}
 	return stream;
 }

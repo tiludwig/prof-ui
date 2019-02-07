@@ -1,4 +1,3 @@
-
 #include <cstdio>
 #include <cstring>
 #include <linux/types.h>
@@ -8,15 +7,33 @@
 #include "DataLink/LinkLayer/TcpLink.hpp"
 #include "DataLink/ProtocolLayer/DefaultProtocol.hpp"
 
-struct prof_response
+class ProfilingResponse
 {
+
+public:
 	__u64 cycleCount;
 	__u64 retInstrCount;
 	__u64 ctxSwitches;
 	__u64 cpuFrequency;
+
+	ProfilingResponse()
+	{
+		cycleCount = 0;
+		retInstrCount = 0;
+		ctxSwitches = 0;
+		cpuFrequency = 0;
+	}
+
+	void deserialize(LinkStream& payload)
+	{
+		payload >> cycleCount;
+		payload >> retInstrCount;
+		payload >> ctxSwitches;
+		payload >> cpuFrequency;
+	}
 };
 
-void printResults(prof_response& result)
+void printResults(ProfilingResponse& result)
 {
 	printf("\nProfiling result:\n");
 	printf("%20llu cycles\n", result.cycleCount);
@@ -26,8 +43,7 @@ void printResults(prof_response& result)
 
 	double timeElapsed = (result.cycleCount / 1.2);
 	int unitIndex = 0;
-	const char* units[] =
-	{ "ns", "us", "ms", "s" };
+	const char* units[] = { "ns", "us", "ms", "s" };
 	if (timeElapsed > 1000.0)
 	{
 		timeElapsed = timeElapsed / 1000.0;
@@ -49,27 +65,77 @@ void printResults(prof_response& result)
 	printf("%20.2f %s task time\n", timeElapsed, units[unitIndex]);
 }
 
+class InfoPacket
+{
+public:
+	std::string info;
+	unsigned int receivedid;
+
+public:
+	void deserialize(LinkStream& stream)
+	{
+		stream >> info;
+		stream >> receivedid;
+	}
+};
+
 int main(int argc, char const *argv[])
 {
 	try
 	{
-		std::string name = "Yoooo. Is this working???";
-
-		HostPacket packet(100);
-		packet.payloadStream << 1234 << 5678 << name;
-		auto result = packet.serialize();
-
-		HostPacket test(0);
-		test.deserialize(*result);
-
+		auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
 		TcpLink link;
+		link.setProtocol(std::move(protocol));
 		link.initialize();
-		link.open("127.0.0.1", 8080);
+		link.open(argv[1], 8080);
 
-		link.sendPacket(test);
+		if (std::string(argv[2]) == "exit")
+		{
+			printf("Sending exit\n");
+			{
+				HostPacket packet(100);
+				packet.addPayload(true);
+
+				link.sendPacket(packet);
+				return 0;
+			}
+		}
+
+		{
+			HostPacket packet(static_cast<uint32_t>(300));
+			packet.addPayload(argv[2]);
+			packet.addPayload(static_cast<uint32_t>(1));
+			packet.addPayload(argv[3]);
+
+			link.sendPacket(packet);
+		}
+		{
+			auto response = link.waitForPacket();
+			auto payload = response->getPayload();
+
+			bool ok;
+			payload >> ok;
+			if (ok)
+				printf("Configuration successfully sent.\n");
+			else
+				printf("There was an error.\n");
+		}
+
+		printf("Starting profiler");
+		{
+			HostPacket packet(static_cast<uint32_t>(200));
+			packet.addPayload(true);
+			packet.addPayload("bubblesort");
+
+			link.sendPacket(packet);
+		}
+		{
+			auto response = link.waitForPacket();
+			auto result = response->createType<ProfilingResponse>();
+			printResults(result);
+		}
 		return 0;
-	}
-	catch(const char* err)
+	} catch (const char* err)
 	{
 		printf("Error: %s\n", err);
 		return -1;
