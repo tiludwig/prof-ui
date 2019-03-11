@@ -40,8 +40,9 @@ void printResults(ProfilingResponse& result)
 	printf("%20llu retired instructions\n", result.retInstrCount);
 	printf("%20.2f cycles per instruction\n", ((float) result.cycleCount / result.retInstrCount));
 	printf("%20llu context switches\n", result.ctxSwitches);
+	printf("%20.2f MHz core clock\n", ((float)result.cpuFrequency / 1000000.0));
 
-	double timeElapsed = (result.cycleCount / 1.2);
+	double timeElapsed = (result.cycleCount / 0.6);
 	int unitIndex = 0;
 	const char* units[] = { "ns", "us", "ms", "s" };
 	if (timeElapsed > 1000.0)
